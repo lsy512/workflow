@@ -1,0 +1,29 @@
+name: Build APK with PyInstaller and Kivy
+ 
+on: [push]
+ 
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pipenv wheel
+        pipenv install --dev --system --deploy --ignore-pipfile
+    - name: Install PyInstaller and Kivy for Android (optional if using PySide2)
+      run: |
+        pip install pyinstaller kivy[full] kivy_deps.glew kivy_deps.sdl2 kivy_deps.gstreamer kivy_examples_tutorials androidtools buildozer pillow cython==0.29.21 # 注意版本兼容性，根据需要调整cython版本
+    - name: Build APK with Buildozer (example using Kivy)
+      run: |
+        buildozer -v android debug deploy run # 这将构建并运行APK，你也可以选择其他命令如`buildozer -v android debug`仅构建APK而不运行它。确保你已经正确配置了`buildozer.spec`文件。
+    - name: Upload APK artifact (optional)
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-app-apk
+        path: bin/MyApplication-debug.apk # 根据你的Buildozer配置修改APK路径和名称。通常在.buildozer/android/platform/build/dists/目录下。
